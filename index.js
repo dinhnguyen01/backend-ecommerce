@@ -21,7 +21,7 @@ const path = require("path");
 
 dbConnect();
 
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(morgan("dev"));
 app.use(bodyParser.json());
