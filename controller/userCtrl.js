@@ -4,7 +4,7 @@ const Cart = require("../models/cartModel");
 const Coupon = require("../models/couponModel");
 const Order = require("../models/orderModel");
 
-var uniqid = require("uniqid");
+const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
 const validateMongodbId = require("../utils/validateMongodbId");
@@ -418,7 +418,7 @@ const createOrder = asyncHandler(async (req, res) => {
     let newOrder = await new Order({
       products: userCart.products,
       paymentIntent: {
-        id: uniqid(),
+        id: uuidv4(),
         method: "COD",
         amount: finalAmount,
         status: "Cash on Delivery",
