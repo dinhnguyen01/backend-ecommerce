@@ -11,6 +11,7 @@ const prodcategoryRouter = require("./routes/prodcategoryRoute");
 const blogcategoryRouter = require("./routes/blogCatRoute");
 const brandRouter = require("./routes/brandRoute");
 const colorRouter = require("./routes/colorRoute");
+const enqRouter = require("./routes/enqRoute");
 const couponRouter = require("./routes/couponRoute");
 const uploadRoute = require("./routes/uploadImgRoute");
 
@@ -36,6 +37,7 @@ app.use("/api/category", prodcategoryRouter);
 app.use("/api/blogcategory", blogcategoryRouter);
 app.use("/api/brand", brandRouter);
 app.use("/api/color", colorRouter);
+app.use("/api/enquiry", enqRouter);
 app.use("/api/coupon", couponRouter);
 app.use("/api/upload", uploadRoute);
 
