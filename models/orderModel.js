@@ -13,18 +13,21 @@ var orderSchema = new mongoose.Schema(
         color: String,
       },
     ],
-    paymentIntent: {},
+    paymentIntent: {
+      id: String,
+      method: String,
+      amount: Number,
+      status: String,
+      created: Date,
+      currency: {
+        type: String,
+        default: "vnđ",
+      },
+    },
     orderStatus: {
       type: String,
-      default: "Not Processed",
-      enum: [
-        "Not Processed",
-        "Cash on Delivery",
-        "Processing",
-        "Dispatched",
-        "Cancelled",
-        "Delivered",
-      ],
+      default: "Processing",
+      enum: ["Processing", "Dispatched", "Cancelled", "Delivered"],
     },
     orderby: {
       type: mongoose.Schema.Types.ObjectId,
