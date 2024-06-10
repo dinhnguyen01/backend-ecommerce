@@ -52,6 +52,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       email: findUser?.email,
       mobile: findUser?.mobile,
       token: generateToken(findUser?._id),
+      // refreshToken: refreshToken,
     });
   } else {
     throw new Error("Invalid credentials");
@@ -84,6 +85,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       email: findAdmin?.email,
       mobile: findAdmin?.mobile,
       token: generateToken(findAdmin?._id),
+      // refreshToken: refreshToken,
     });
   } else {
     throw new Error("Invalid Credentials");
@@ -107,28 +109,55 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 });
 
 // logout functionality
+// const logout = asyncHandler(async (req, res) => {
+//   const cookie = req.cookies;
+//   if (!cookie.refreshToken) throw new Error("No refresh token in Cookies");
+//   const refreshToken = cookie.refreshToken;
+//   const user = await User.findOne({ refreshToken });
+//   if (!user) {
+//     res.clearCookie("refreshToken", {
+//       httpOnly: true,
+//       secure: true,
+//     });
+//     return res.sendStatus(204); //forbidden
+//   }
+//   await User.findOneAndUpdate(
+//     { refreshToken },
+//     {
+//       refreshToken: "",
+//     }
+//   );
+//   res.clearCookie("refreshToken", {
+//     httpOnly: true,
+//     secure: true,
+//   });
+//   res.sendStatus(204);
+// });
+
 const logout = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
-  if (!cookie.refreshToken) throw new Error("No refresh token in Cookies");
+  if (!cookie.refreshToken) {
+    // Nếu không có refreshToken trong cookies, trả về lỗi 403 (Forbidden)
+    return res.status(403).send("No refresh token in cookies");
+  }
+
   const refreshToken = cookie.refreshToken;
   const user = await User.findOne({ refreshToken });
   if (!user) {
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-    });
-    return res.sendStatus(204); //forbidden
+    // Nếu không tìm thấy người dùng, trả về lỗi 404 (Not Found)
+    return res.status(404).send("User not found");
   }
-  await User.findOneAndUpdate(
-    { refreshToken },
-    {
-      refreshToken: "",
-    }
-  );
+
+  // Nếu tìm thấy người dùng, xóa refreshToken của họ khỏi cơ sở dữ liệu
+  await User.findOneAndUpdate({ refreshToken }, { refreshToken: "" });
+
+  // Xóa refreshToken khỏi cookies
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: true,
   });
+
+  // Trả về mã 204 (No Content) để chỉ ra rằng logout thành công
   res.sendStatus(204);
 });
 

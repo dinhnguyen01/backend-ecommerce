@@ -7,21 +7,49 @@ const Product = require("../models/productModel");
 const Blog = require("../models/blogModel");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
+const generateUniqueFileName = (file) => {
+  const ext = file.mimetype.split("/")[1];
+  return `image-${file.fieldname}-${Date.now()}-${Math.floor(
+    Math.random() * 10000
+  )}.${ext}`;
+};
+
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../public/assets/uploads"));
   },
   filename: function (req, file, cb) {
     const ext = file.mimetype.split("/")[1];
-    cb(null, `image-${file.fieldname}-${Date.now()}.${ext}`);
+    cb(null, generateUniqueFileName(file));
   },
 });
 
 const configMulter = multer({ storage: storage }).array("files");
 const uploadFileMiddleware = util.promisify(configMulter);
 
+const upload_preImages = asyncHandler(async (req, res) => {
+  try {
+    await uploadFileMiddleware(req, res);
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).send({ message: "Please upload a file!" });
+    }
+
+    let resultFiles = [];
+
+    // Lặp qua từng file và xử lý đồng thời
+    for (let file of req.files) {
+      resultFiles.push({ url: `/assets/uploads/${file.filename}` });
+    }
+
+    res.json({ message: "upload success", resultFiles });
+  } catch (error) {
+    res.status(500).json({ status: "fail", message: error.message });
+  }
+});
+
 const uploadImages = asyncHandler(async (req, res) => {
-  const { id, type } = req.params;
+  const { id, type, imageType } = req.params;
   validateMongoDbId(id);
 
   try {
@@ -37,17 +65,37 @@ const uploadImages = asyncHandler(async (req, res) => {
 
     let updatedDocument;
     if (type === "product") {
-      updatedDocument = await Product.findByIdAndUpdate(
-        id,
-        { $push: { images: { $each: resultFiles } } },
-        { new: true }
-      );
+      if (imageType === "primary") {
+        updatedDocument = await Product.findByIdAndUpdate(
+          id,
+          { primaryImage: resultFiles[0].url },
+          { new: true }
+        );
+      } else if (imageType === "secondary") {
+        updatedDocument = await Product.findByIdAndUpdate(
+          id,
+          { $push: { images: { $each: resultFiles } } },
+          { new: true }
+        );
+      } else {
+        return res.status(400).json({ message: "Invalid imageType" });
+      }
     } else if (type === "blog") {
-      updatedDocument = await Blog.findByIdAndUpdate(
-        id,
-        { $push: { images: { $each: resultFiles } } },
-        { new: true }
-      );
+      if (imageType === "primary") {
+        updatedDocument = await Blog.findByIdAndUpdate(
+          id,
+          { primaryImage: resultFiles[0].url },
+          { new: true }
+        );
+      } else if (imageType === "secondary") {
+        updatedDocument = await Blog.findByIdAndUpdate(
+          id,
+          { $push: { images: { $each: resultFiles } } },
+          { new: true }
+        );
+      } else {
+        return res.status(400).json({ message: "Invalid imageType" });
+      }
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
@@ -59,10 +107,9 @@ const uploadImages = asyncHandler(async (req, res) => {
 });
 
 const deleteImages = asyncHandler(async (req, res) => {
-  const { id, type, filename } = req.params;
+  const { id, type, imageType, filename } = req.params; // Adding imageType to params
   validateMongoDbId(id);
 
-  console.log(filename);
   try {
     const filePath = path.join(__dirname, "../public/assets/uploads", filename);
 
@@ -76,17 +123,37 @@ const deleteImages = asyncHandler(async (req, res) => {
 
       let updatedDocument;
       if (type === "product") {
-        updatedDocument = await Product.findByIdAndUpdate(
-          id,
-          { $pull: { images: { url: `/assets/uploads/${filename}` } } },
-          { new: true }
-        );
+        if (imageType === "primary") {
+          updatedDocument = await Product.findByIdAndUpdate(
+            id,
+            { primaryImage: null },
+            { new: true }
+          );
+        } else if (imageType === "secondary") {
+          updatedDocument = await Product.findByIdAndUpdate(
+            id,
+            { $pull: { images: { url: `/assets/uploads/${filename}` } } },
+            { new: true }
+          );
+        } else {
+          return res.status(400).json({ message: "Invalid imageType" });
+        }
       } else if (type === "blog") {
-        updatedDocument = await Blog.findByIdAndUpdate(
-          id,
-          { $pull: { images: { url: `/assets/uploads/${filename}` } } },
-          { new: true }
-        );
+        if (imageType === "primary") {
+          updatedDocument = await Blog.findByIdAndUpdate(
+            id,
+            { primaryImage: null },
+            { new: true }
+          );
+        } else if (imageType === "secondary") {
+          updatedDocument = await Blog.findByIdAndUpdate(
+            id,
+            { $pull: { images: { url: `/assets/uploads/${filename}` } } },
+            { new: true }
+          );
+        } else {
+          return res.status(400).json({ message: "Invalid imageType" });
+        }
       } else {
         return res.status(400).json({ message: "Invalid type" });
       }
@@ -94,7 +161,6 @@ const deleteImages = asyncHandler(async (req, res) => {
       res.json({
         status: "success",
         message: "Delete success",
-        document: updatedDocument,
       });
     });
   } catch (error) {
@@ -102,4 +168,4 @@ const deleteImages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { uploadImages, deleteImages };
+module.exports = { upload_preImages, uploadImages, deleteImages };
