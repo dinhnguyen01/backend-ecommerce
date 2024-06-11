@@ -12,7 +12,6 @@ const { generateRefreshToken } = require("../config/refreshToken");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./emailCtrl");
 const crypto = require("crypto");
-const { log } = require("console");
 
 // Create a user
 const CreateUser = asyncHandler(async (req, res) => {

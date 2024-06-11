@@ -39,7 +39,7 @@ var productSchema = new mongoose.Schema(
       default: 0,
     },
     primaryImage: {
-      url: String,
+      type: String,
     },
     images: [
       {

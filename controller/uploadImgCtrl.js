@@ -5,13 +5,13 @@ const asyncHandler = require("express-async-handler");
 const fs = require("fs");
 const Product = require("../models/productModel");
 const Blog = require("../models/blogModel");
+const { v4: uuidv4 } = require("uuid");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
 const generateUniqueFileName = (file) => {
   const ext = file.mimetype.split("/")[1];
-  return `image-${file.fieldname}-${Date.now()}-${Math.floor(
-    Math.random() * 10000
-  )}.${ext}`;
+  const uniqueID = uuidv4();
+  return `image-${file.fieldname}-${Date.now()}-${uniqueID}.${ext}`;
 };
 
 let storage = multer.diskStorage({
@@ -43,6 +43,32 @@ const upload_preImages = asyncHandler(async (req, res) => {
     }
 
     res.json({ message: "upload success", resultFiles });
+  } catch (error) {
+    res.status(500).json({ status: "fail", message: error.message });
+  }
+});
+
+const delete_preImages = asyncHandler(async (req, res) => {
+  try {
+    const { filename } = req.params;
+
+    const filePath = path.join(__dirname, "../public/assets/uploads", filename);
+
+    // Check if the file exists
+    if (!fs.existsSync(filePath)) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "File not found" });
+    }
+
+    // Delete the file
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        return res.status(500).json({ status: "fail", message: err.message });
+      }
+
+      res.json({ status: "success", message: "File deleted successfully" });
+    });
   } catch (error) {
     res.status(500).json({ status: "fail", message: error.message });
   }
@@ -168,4 +194,9 @@ const deleteImages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { upload_preImages, uploadImages, deleteImages };
+module.exports = {
+  upload_preImages,
+  delete_preImages,
+  uploadImages,
+  deleteImages,
+};
