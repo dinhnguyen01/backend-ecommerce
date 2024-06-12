@@ -6,6 +6,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
+    console.log(req.body);
     if (req.body.title) {
       req.body.slug = slugify(req.body.title);
     }

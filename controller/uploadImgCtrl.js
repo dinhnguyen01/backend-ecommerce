@@ -34,7 +34,6 @@ const upload_preImages = asyncHandler(async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).send({ message: "Please upload a file!" });
     }
-
     let resultFiles = [];
 
     // Lặp qua từng file và xử lý đồng thời
