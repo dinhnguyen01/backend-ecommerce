@@ -40,25 +40,16 @@ var blogSchema = new mongoose.Schema(
       },
     ],
     primaryImage: {
-      url: String,
+      type: String,
     },
-    images: [
-      {
-        url: String,
-      },
-    ],
+    images: [{ type: String }],
+
     author: {
       type: String,
       default: "Admin",
     },
   },
   {
-    toJSON: {
-      virtuals: true,
-    },
-    toObject: {
-      virtuals: true,
-    },
     timestamps: true,
   }
 );
